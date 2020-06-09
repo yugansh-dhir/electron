@@ -1,0 +1,33 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: John Kleinschmidt <jkleinsc@github.com>
+Date: Tue, 9 Jun 2020 10:38:02 -0400
+Subject: debug why this error is thrown
+
+This error is thrown on arm for some reason:
+"Uncaught (in promise) TypeError: Invalid host defined options", source: devtools://devtools/bundled/devtools_app.html?remoteBase=https://chrome-devtools-frontend.appspot.com/serve_file/@ff6c4f4b826d66c2e32380bf5d1eb5e1fe37faef/&can_dock=true&toolbarColor=rgba(223,223,223,1)&textColor=rgba(0,0,0,1)&experiments=true (1)
+
+diff --git a/src/module_wrap.cc b/src/module_wrap.cc
+index f578f752b02d8bbe4c445e2c9042fc348af5fa94..b616e9df362b87c9b5cd2cb74930e52134f2a8ec 100644
+--- a/src/module_wrap.cc
++++ b/src/module_wrap.cc
+@@ -13,6 +13,8 @@
+ #include <sys/stat.h>  // S_IFDIR
+ 
+ #include <algorithm>
++#include "base/debug/stack_trace.h"
++
+ 
+ namespace node {
+ namespace loader {
+@@ -505,8 +507,10 @@ static MaybeLocal<Promise> ImportModuleDynamically(
+ 
+   Local<PrimitiveArray> options = referrer->GetHostDefinedOptions();
+   if (options->Length() != HostDefinedOptions::kLength) {
++    printf("OPTIONS LENGTH %d != HOST DEFINED OPTIONS LENGTH %d \n", options->Length(), HostDefinedOptions::kLength);
+     Local<Promise::Resolver> resolver;
+-    if (!Promise::Resolver::New(context).ToLocal(&resolver)) return {};
++    if (!Promise::Resolver::New(context).ToLocal(&resolver)) return {};    
++    base::debug::StackTrace().Print();
+     resolver
+         ->Reject(context,
+                  v8::Exception::TypeError(FIXED_ONE_BYTE_STRING(
