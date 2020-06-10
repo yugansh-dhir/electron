@@ -7,7 +7,7 @@ This error is thrown on arm for some reason:
 "Uncaught (in promise) TypeError: Invalid host defined options", source: devtools://devtools/bundled/devtools_app.html?remoteBase=https://chrome-devtools-frontend.appspot.com/serve_file/@ff6c4f4b826d66c2e32380bf5d1eb5e1fe37faef/&can_dock=true&toolbarColor=rgba(223,223,223,1)&textColor=rgba(0,0,0,1)&experiments=true (1)
 
 diff --git a/src/module_wrap.cc b/src/module_wrap.cc
-index f578f752b02d8bbe4c445e2c9042fc348af5fa94..b616e9df362b87c9b5cd2cb74930e52134f2a8ec 100644
+index f578f752b02d8bbe4c445e2c9042fc348af5fa94..20877aa13a9c9910f3c6c1a51cda115cc142cdba 100644
 --- a/src/module_wrap.cc
 +++ b/src/module_wrap.cc
 @@ -13,6 +13,8 @@
@@ -19,15 +19,23 @@ index f578f752b02d8bbe4c445e2c9042fc348af5fa94..b616e9df362b87c9b5cd2cb74930e521
  
  namespace node {
  namespace loader {
-@@ -505,8 +507,10 @@ static MaybeLocal<Promise> ImportModuleDynamically(
+@@ -505,12 +507,17 @@ static MaybeLocal<Promise> ImportModuleDynamically(
  
    Local<PrimitiveArray> options = referrer->GetHostDefinedOptions();
    if (options->Length() != HostDefinedOptions::kLength) {
-+    printf("OPTIONS LENGTH %d != HOST DEFINED OPTIONS LENGTH %d \n", options->Length(), HostDefinedOptions::kLength);
++    fprintf(stderr, "OPTIONS LENGTH %d != HOST DEFINED OPTIONS LENGTH %d \n", options->Length(), HostDefinedOptions::kLength);
      Local<Promise::Resolver> resolver;
 -    if (!Promise::Resolver::New(context).ToLocal(&resolver)) return {};
 +    if (!Promise::Resolver::New(context).ToLocal(&resolver)) return {};    
 +    base::debug::StackTrace().Print();
++    char errorMsg [100];
++    sprintf(errorMsg, "Invalid host defined options OPTIONS LENGTH %d != HOST DEFINED OPTIONS LENGTH %d", 
++            options->Length(), HostDefinedOptions::kLength);
      resolver
          ->Reject(context,
                   v8::Exception::TypeError(FIXED_ONE_BYTE_STRING(
+-                     context->GetIsolate(), "Invalid host defined options")))
++                     context->GetIsolate(), errorMsg)))
+         .ToChecked();
+     return handle_scope.Escape(resolver->GetPromise());
+   }
