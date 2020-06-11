@@ -4,6 +4,8 @@
 
 #include "shell/common/api/remote/remote_object_freer.h"
 
+#include <utility>
+
 #include "base/strings/utf_string_conversions.h"
 #include "base/values.h"
 #include "content/public/renderer/render_frame.h"
@@ -57,10 +59,11 @@ void RemoteObjectFreer::RunDestructor() {
   if (!render_frame)
     return;
 
-  mojom::ElectronBrowserPtr electron_ptr;
+  mojo::Remote<mojom::ElectronBrowser> electron_browser_remote;
   render_frame->GetRemoteInterfaces()->GetInterface(
-      mojo::MakeRequest(&electron_ptr));
-  electron_ptr->DereferenceRemoteJSObject(context_id_, object_id_);
+      electron_browser_remote.BindNewPipeAndPassReceiver());
+  electron_browser_remote->DereferenceRemoteJSObject(context_id_, object_id_,
+                                                     ref_count);
 }
 
 }  // namespace electron
