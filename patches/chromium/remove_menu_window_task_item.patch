@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Cheng Zhao <zcbenz@gmail.com>
+Date: Thu, 4 Oct 2018 14:57:02 -0700
+Subject: fix: remove menu window from taskbar
+
+Menu window should not appear in taskbar.
+
+diff --git a/ui/views/widget/widget_hwnd_utils.cc b/ui/views/widget/widget_hwnd_utils.cc
+index 40e66a212e3ea158b61f11d804a3c1644023b2d7..d3cdffc67216efa81f1c7394ee653a1d66207bd2 100644
+--- a/ui/views/widget/widget_hwnd_utils.cc
++++ b/ui/views/widget/widget_hwnd_utils.cc
+@@ -109,6 +109,7 @@ void CalculateWindowStylesFromInitParams(
+       break;
+     case Widget::InitParams::TYPE_MENU:
+       *style |= WS_POPUP;
++      *ex_style |= WS_EX_TOOLWINDOW;
+       if (::features::IsFormControlsRefreshEnabled() &&
+           params.remove_standard_frame) {
+         // If the platform doesn't support drop shadow, decorate the Window
