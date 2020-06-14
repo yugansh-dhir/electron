@@ -4,6 +4,7 @@
 // found in the LICENSE file.
 
 #include "shell/browser/microtasks_runner.h"
+#include "shell/common/gin_helper/microtasks_scope.h"
 #include "v8/include/v8.h"
 
 namespace electron {
@@ -15,7 +16,7 @@ void MicrotasksRunner::WillProcessTask(const base::PendingTask& pending_task,
 
 void MicrotasksRunner::DidProcessTask(const base::PendingTask& pending_task) {
   v8::Isolate::Scope scope(isolate_);
-  v8::MicrotasksScope::PerformCheckpoint(isolate_);
+  gin_helper::MicrotasksScope micrtasks_scope(isolate_);
 }
 
 }  // namespace electron

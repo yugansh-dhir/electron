@@ -13,6 +13,7 @@
 #include "shell/common/gin_converters/std_converter.h"
 #include "shell/common/gin_helper/function_template.h"
 #include "shell/common/gin_helper/locker.h"
+#include "shell/common/gin_helper/microtasks_scope.h"
 
 // Implements safe convertions between JS functions and base::Callback.
 
@@ -46,10 +47,9 @@ struct V8FunctionInvoker<v8::Local<v8::Value>(ArgTypes...)> {
                                  ArgTypes... raw) {
     gin_helper::Locker locker(isolate);
     v8::EscapableHandleScope handle_scope(isolate);
+    gin_helper::MicrotasksScope microtasks_scope(isolate);
     if (!function.IsAlive())
       return v8::Null(isolate);
-    v8::MicrotasksScope script_scope(isolate,
-                                     v8::MicrotasksScope::kRunMicrotasks);
     v8::Local<v8::Function> holder = function.NewHandle(isolate);
     v8::Local<v8::Context> context = holder->CreationContext();
     v8::Context::Scope context_scope(context);
@@ -71,10 +71,9 @@ struct V8FunctionInvoker<void(ArgTypes...)> {
                  ArgTypes... raw) {
     gin_helper::Locker locker(isolate);
     v8::HandleScope handle_scope(isolate);
+    gin_helper::MicrotasksScope microtasks_scope(isolate);
     if (!function.IsAlive())
       return;
-    v8::MicrotasksScope script_scope(isolate,
-                                     v8::MicrotasksScope::kRunMicrotasks);
     v8::Local<v8::Function> holder = function.NewHandle(isolate);
     v8::Local<v8::Context> context = holder->CreationContext();
     v8::Context::Scope context_scope(context);
@@ -94,11 +93,10 @@ struct V8FunctionInvoker<ReturnType(ArgTypes...)> {
                        ArgTypes... raw) {
     gin_helper::Locker locker(isolate);
     v8::HandleScope handle_scope(isolate);
+    gin_helper::MicrotasksScope microtasks_scope(isolate);
     ReturnType ret = ReturnType();
     if (!function.IsAlive())
       return ret;
-    v8::MicrotasksScope script_scope(isolate,
-                                     v8::MicrotasksScope::kRunMicrotasks);
     v8::Local<v8::Function> holder = function.NewHandle(isolate);
     v8::Local<v8::Context> context = holder->CreationContext();
     v8::Context::Scope context_scope(context);
